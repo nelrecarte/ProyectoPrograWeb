@@ -10,13 +10,15 @@ public class TestController : ControllerBase
     private readonly FirestoreDb _db;
     public TestController(FirestoreDb db) => _db = db;
 
-    [HttpGet("firebase-check")]
-    public async Task<IActionResult> Check()
+    [HttpGet("firebase-check/{integrante}")]
+    public async Task<IActionResult> Check(string integrante, [FromQuery] string? nombre)
     {
-        var doc = _db.Collection("test").Document("ping");
+        var doc = _db.Collection("test").Document(integrante);
         await doc.SetAsync(new Dictionary<string, object>
         {
             { "status", "ok" },
+            { "integrante", nombre ?? integrante },
+            { "maquina", Environment.MachineName },
             { "timestamp", Timestamp.GetCurrentTimestamp() }
         });
 
