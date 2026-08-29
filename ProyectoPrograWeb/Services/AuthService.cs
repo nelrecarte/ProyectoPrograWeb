@@ -78,6 +78,10 @@ public class AuthService
             FullName = data["FullName"].ToString()!,
             Email = data["Email"].ToString()!,
             PasswordHash = data["PasswordHash"].ToString()!,
+            PhoneNumber = data["Email"].ToString()!,
+            BirthDate = ((Google.Cloud.Firestore.Timestamp)data["CreatedAt"]).ToDateTime(),
+            Country = data["Email"].ToString()!,
+            Bio = data["Email"].ToString()!,
             Role = data["Role"].ToString()!,
             CreatedAt = ((Google.Cloud.Firestore.Timestamp)data["CreatedAt"]).ToDateTime()
 

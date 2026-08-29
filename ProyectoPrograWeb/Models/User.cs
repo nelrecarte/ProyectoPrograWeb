@@ -12,6 +12,14 @@ public class User
     
     public string PasswordHash { get; set; } = string.Empty;
     
+    public string PhoneNumber { get; set; } = string.Empty;
+    
+    public DateTime BirthDate { get; set; } = DateTime.UtcNow;
+    
+    public string Country { get; set; } = string.Empty;
+    
+    public string Bio { get; set; } = string.Empty;
+    
     public string Role { get; set; } = "user";
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
