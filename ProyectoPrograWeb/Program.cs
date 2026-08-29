@@ -1,42 +1,72 @@
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
-using Google.Cloud.Firestore;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using ProyectoQ3Backend.Services;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---- Firebase ----
-var credPath = builder.Configuration["Firebase:CredentialsPath"];
-var projectId = builder.Configuration["Firebase:ProjectId"];
+/**
+ * Una sola instancia para toda la vida de ejecucion de la app
+ */
+builder.Services.AddSingleton<FirebaseService>();
 
-FirebaseApp.Create(new AppOptions
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<NoteService>();
+
+builder.Services.AddControllers();
+builder.Services.AddOpenApi(options =>
 {
-    Credential = GoogleCredential.FromFile(credPath),
-    ProjectId = projectId
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
-var firestoreDb = new FirestoreDbBuilder
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
 {
-    ProjectId = projectId,
-    CredentialsPath = credPath
-}.Build();
-
-builder.Services.AddSingleton(firestoreDb);
-// ------------------
-
-// Add services to the container.
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("NoteBook API")
+            .WithPreferredScheme("Bearer")
+            .WithHttpBearerAuthentication(bearer =>
+            {
+                bearer.Token = "";
+            });
+    });
 }
 
-app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

@@ -6,12 +6,16 @@ public class FirebaseService
 {
     private readonly FirestoreDb _firestoreDb;
 
-    public FirebaseService()
+    public FirebaseService(IConfiguration configuration)
     {
-        var credentialPath = Path.Combine(
-            AppContext.BaseDirectory, "Config", "firebase-crendentials.json");
+        var projectId = configuration["Firebase:ProjectId"];
+        var credentialsPath = configuration["Firebase:CredentialsPath"];
 
-        _firestoreDb = FirestoreDb.Create("web-64");
+        _firestoreDb = new FirestoreDbBuilder
+        {
+            ProjectId = projectId,
+            CredentialsPath = credentialsPath
+        }.Build();
     }
 
     public CollectionReference GetCollection(string collectionName)
