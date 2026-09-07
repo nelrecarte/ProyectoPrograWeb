@@ -3,6 +3,7 @@ using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProyectoQ3Backend.DTOs;
+using ProyectoQ3Backend.Extensions;
 using ProyectoQ3Backend.Models;
 using ProyectoQ3Backend.Services;
 
@@ -26,7 +27,7 @@ public class NoteController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.GetUserId();
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -48,7 +49,7 @@ public class NoteController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.GetUserId();
 
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
