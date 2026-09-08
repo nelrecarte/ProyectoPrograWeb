@@ -9,7 +9,7 @@ obj/
 **/Config/firebase-credentials.json
 
 # Archivos locales
-appsettings.Development.json
+# appsettings.Development.json
 
 # Sistema operativo
 .DS_Store
