@@ -4,13 +4,6 @@ using ProyectoQ3Backend.Services;
 
 namespace ProyectoQ3Backend.Middlewares;
 
-/// <summary>
-/// Convierte cualquier excepcion en una respuesta JSON con la misma forma, para que
-/// el frontend nunca tenga que interpretar un stack trace ni adivinar el codigo.
-///
-/// Forma de la respuesta:
-///   { "error": "mensaje para mostrar", "code": "codigo_estable", "data": { ... } }
-/// </summary>
 public class ErrorHandlingMiddleware
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -40,7 +33,6 @@ public class ErrorHandlingMiddleware
         }
         catch (DomainException ex)
         {
-            // Errores de negocio esperados: no son fallas, no van al log como error.
             _logger.LogInformation("Regla de negocio: {Code} - {Message}", ex.Code, ex.Message);
             await WriteAsync(context, ex.StatusCode, ex.Message, ex.Code, ex.Data2);
         }

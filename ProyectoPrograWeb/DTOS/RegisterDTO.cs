@@ -17,6 +17,5 @@ public class RegisterDto
     [Required] public string Country { get; set; } = string.Empty;
     public string Bio { get; set; } = string.Empty;
 
-    /// <summary>Zona del ciudadano. Opcional al registrarse; se puede fijar despues desde el perfil.</summary>
     public string ZoneId { get; set; } = string.Empty;
 }

@@ -6,13 +6,6 @@ using ProyectoQ3Backend.Models;
 
 namespace ProyectoQ3Backend.Services;
 
-/// <summary>
-/// Escenario 4: el tecnico cierra el corte.
-///
-/// La resolucion se guarda con el id del reporte como id del documento, asi que
-/// estructuralmente no puede haber dos. Ademas la transaccion revisa que no exista
-/// antes de escribir: una resolucion registrada nunca se modifica ni se reemplaza.
-/// </summary>
 public class ResolutionService
 {
     private readonly FirebaseService _firebase;
@@ -52,7 +45,6 @@ public class ResolutionService
             if (report.Status == ReportStatus.Resuelto)
                 throw new ConflictException("Ese corte ya fue resuelto", "reporte_resuelto");
 
-            // Regla del enunciado: solo el tecnico asignado puede cerrar el reporte.
             if (report.AssignedTechnicianId != technician.Id)
                 throw new ForbiddenException(
                     "Solo el tecnico asignado a este reporte puede registrar la resolucion",

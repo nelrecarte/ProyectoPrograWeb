@@ -2,11 +2,6 @@ using Google.Cloud.Firestore;
 
 namespace ProyectoQ3Backend.Models;
 
-/// <summary>
-/// Confirmacion comunitaria: un vecino dice que el corte tambien le afecta.
-/// El id del documento es "{reportId}_{userId}", asi Firestore mismo impide
-/// que una persona confirme dos veces el mismo reporte.
-/// </summary>
 [FirestoreData]
 public class Confirmation
 {

@@ -23,7 +23,6 @@ public class AppUser
 
     [FirestoreProperty] public string Role { get; set; } = Roles.Ciudadano;
 
-    /// <summary>Zona del ciudadano o zona de cobertura del tecnico. Vacio para el administrador.</summary>
     [FirestoreProperty] public string ZoneId { get; set; } = string.Empty;
 
     [FirestoreProperty] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -31,10 +30,6 @@ public class AppUser
     [FirestoreProperty] public string UserId { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Los tres roles que pide el enunciado. Viajan al frontend dentro del ID token
-/// como custom claim "role" de Firebase.
-/// </summary>
 public static class Roles
 {
     public const string Administrador = "Administrador";

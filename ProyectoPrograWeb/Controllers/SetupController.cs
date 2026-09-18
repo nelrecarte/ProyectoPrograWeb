@@ -3,11 +3,6 @@ using ProyectoQ3Backend.Services;
 
 namespace ProyectoQ3Backend.Controllers;
 
-/// <summary>
-/// Utilidades de arranque del proyecto. No llevan [Authorize] porque hacen falta
-/// antes de que exista el primer administrador; en su lugar piden la clave de
-/// ApagonYa:SetupKey, que vive en user-secrets y no en el repositorio.
-/// </summary>
 [ApiController]
 [Route("api/setup")]
 public class SetupController : ControllerBase
@@ -16,7 +11,6 @@ public class SetupController : ControllerBase
 
     public SetupController(SeedService seedService) => _seedService = seedService;
 
-    /// <summary>Crea el catalogo inicial de zonas. Se puede llamar varias veces sin duplicar.</summary>
     [HttpPost("seed-zones")]
     public async Task<IActionResult> SeedZones([FromHeader(Name = "X-Setup-Key")] string? setupKey)
     {
@@ -31,10 +25,6 @@ public class SetupController : ControllerBase
         });
     }
 
-    /// <summary>
-    /// Convierte en administrador a un usuario ya registrado. Es como se crea el
-    /// primer admin, porque el registro siempre da el rol Ciudadano.
-    /// </summary>
     [HttpPost("promote-admin")]
     public async Task<IActionResult> PromoteAdmin(
         [FromHeader(Name = "X-Setup-Key")] string? setupKey,

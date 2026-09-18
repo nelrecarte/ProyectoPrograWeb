@@ -13,7 +13,6 @@ public class CreateResolutionDto
     [Range(0, 10080, ErrorMessage = "El tiempo estimado debe estar entre 0 y 10080 minutos")]
     public int EstimatedMinutes { get; set; }
 
-    /// <summary>Hora exacta del restablecimiento. Si no se manda, se toma la hora actual.</summary>
     public DateTime? RestoredAt { get; set; }
 }
 

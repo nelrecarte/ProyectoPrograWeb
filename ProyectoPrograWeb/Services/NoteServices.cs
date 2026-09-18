@@ -15,7 +15,6 @@ public class NoteService
     public async Task<Note> Create(NoteDto dto, string userId)
     {
         
-        // Armando la nota
         var note = new Note
         {
             Id = Guid.NewGuid().ToString(),
@@ -26,7 +25,6 @@ public class NoteService
             CreatedAt = DateTime.UtcNow 
         };
         
-        // Guardando la nota
         await _firebaseService.GetCollection("notes")
             .Document(note.Id)
             .SetAsync(new Dictionary<string, object>

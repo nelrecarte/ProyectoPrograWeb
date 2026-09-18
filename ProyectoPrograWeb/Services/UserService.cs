@@ -57,7 +57,6 @@ public class UserService
         return UserProfileDto.From(user);
     }
 
-    /// <summary>Cambia el rol en Firestore y en el custom claim de Firebase Auth.</summary>
     public async Task<UserProfileDto> SetRoleAsync(string userId, string role)
     {
         await _roleService.SetRoleAsync(userId, role);

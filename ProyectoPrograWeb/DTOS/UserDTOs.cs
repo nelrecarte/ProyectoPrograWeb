@@ -40,12 +40,10 @@ public class UpdateProfileDto
     public string Country { get; set; } = string.Empty;
     public string Bio { get; set; } = string.Empty;
 
-    /// <summary>Zona del ciudadano. Se usa para mostrarle los cortes de su sector.</summary>
     public string ZoneId { get; set; } = string.Empty;
 }
 
 public class AssignRoleDto
 {
-    /// <summary>Administrador, Tecnico o Ciudadano.</summary>
     [Required] public string Role { get; set; } = string.Empty;
 }

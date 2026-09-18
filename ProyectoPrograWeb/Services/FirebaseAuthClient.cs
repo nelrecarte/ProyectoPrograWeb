@@ -24,6 +24,27 @@ public class FirebaseAuthClient
     public Task<FirebaseAuthResult> SignInAsync(string email, string password) =>
         SendAsync("signInWithPassword", email, password);
 
+    public async Task SendPasswordResetAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(_apiKey))
+            throw new FirebaseAuthException(
+                "Firebase:ApiKey esta vacia. Pedirle a Nelson la Web API Key de la consola.");
+
+        var response = await _http.PostAsJsonAsync(
+            $"{BaseUrl}:sendOobCode?key={_apiKey}",
+            new { requestType = "PASSWORD_RESET", email });
+
+        if (response.IsSuccessStatusCode)
+            return;
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        if (ErrorKey(body) == "EMAIL_NOT_FOUND")
+            return;
+
+        throw new FirebaseAuthException(TranslateError(body));
+    }
+
     private async Task<FirebaseAuthResult> SendAsync(string action, string email, string password)
     {
         if (string.IsNullOrWhiteSpace(_apiKey))
@@ -47,14 +68,19 @@ public class FirebaseAuthClient
         };
     }
 
-    private static string TranslateError(JsonElement body)
+    private static string ErrorKey(JsonElement body)
     {
         var code = body.TryGetProperty("error", out var error)
                    && error.TryGetProperty("message", out var message)
             ? message.GetString() ?? string.Empty
             : string.Empty;
 
-        var key = code.Split(':')[0].Trim();
+        return code.Split(':')[0].Trim();
+    }
+
+    private static string TranslateError(JsonElement body)
+    {
+        var key = ErrorKey(body);
 
         return key switch
         {

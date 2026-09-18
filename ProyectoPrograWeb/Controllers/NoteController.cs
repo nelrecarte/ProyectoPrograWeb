@@ -21,7 +21,6 @@ public class NoteController : ControllerBase
         _noteService = noteService;
     }
     
-    // POST /api/Note
     [HttpPost]
     public async Task<ActionResult> Create([FromBody] NoteDto dto)
     {
@@ -43,7 +42,6 @@ public class NoteController : ControllerBase
         }
     }
 
-    // GET /api/Note
     [HttpGet]
     public async Task<IActionResult> GetMyNotes()
     {

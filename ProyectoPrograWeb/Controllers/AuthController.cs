@@ -22,4 +22,15 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto)
         => Ok(await _authService.LoginAsync(dto));
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await _authService.ForgotPasswordAsync(dto.Email);
+
+        return Ok(new
+        {
+            mensaje = "Si el correo esta registrado, te enviamos un enlace para restablecer la contrasena."
+        });
+    }
 }
