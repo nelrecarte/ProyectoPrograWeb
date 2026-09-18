@@ -50,3 +50,9 @@ git push -u origin feat/tu-nombre
 ```
 
 Al terminar se abre PR hacia `main` y se esperan las 2 aprobaciones.
+
+## Limitación conocida: evidencia fotográfica
+
+La evidencia se guarda como enlace (`evidenceUrl`), no como archivo subido. Firebase Storage
+requiere plan Blaze (con tarjeta) y el proyecto especifica cuenta gratuita. El razonamiento
+completo y qué falta para completarlo está en `docs/API-CONTRACT.md`.

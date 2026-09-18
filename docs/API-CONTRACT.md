@@ -60,6 +60,12 @@ El rol viaja como custom claim `role` dentro del token. Los tres valores posible
 |---|---|---|---|
 | POST | `/api/auth/register` | público | Registra un ciudadano. Devuelve `idToken`, `localId`, `email`, `role`. |
 | POST | `/api/auth/login` | público | Inicia sesión. Mismo cuerpo de respuesta. |
+| POST | `/api/auth/forgot-password` | público | Manda el correo de Firebase para restablecer la contraseña. |
+
+**`ForgotPasswordDto`**: `email`.
+
+`forgot-password` responde **200 siempre**, exista o no la cuenta. Es a propósito: si
+contestara distinto, serviría para averiguar qué correos están registrados.
 
 **`RegisterDto`**: `email`, `password` (mín. 6), `displayName`, `username`, `phoneNumber`,
 `birthDate`, `country`, `bio` (opcional), `zoneId` (opcional).
@@ -152,6 +158,45 @@ registrar una resolución.
 
 ---
 
+## Evidencia fotográfica
+
+`evidenceUrl` guarda un **enlace** a la foto. El reporte viaja con él desde el formulario, se
+guarda en Firestore y el detalle muestra la imagen.
+
+Lo que el proyecto pide y **no** se hizo es subir el archivo a Firebase Storage, en
+`/reports/evidence/`. No fue un olvido: **Storage exige plan Blaze**, es decir una cuenta de
+facturación con tarjeta, y el mismo documento del proyecto, en HERRAMIENTAS REQUERIDAS,
+especifica "Cuenta de Firebase (gratuita)". Los dos requisitos no se pueden cumplir a la vez y se
+decidió no asociar una tarjeta a un proyecto de clase.
+
+Para completarlo cuando Storage esté disponible hay que agregar el endpoint de subida (el backend
+ya tiene credenciales de Admin SDK vía `firebase-key.json`) y cambiar el input de texto por un
+selector de archivo. El resto del flujo ya está y no cambia.
+
+---
+
+## Notificaciones
+
+| Método | Ruta | Rol | Qué hace |
+|---|---|---|---|
+| GET | `/api/notifications?onlyUnread=true` | cualquiera | Las del usuario autenticado, más recientes primero, máximo 50. |
+| GET | `/api/notifications/unread-count` | cualquiera | `{ "total": 3 }`. Es lo que pinta la campanita del navbar. |
+| PATCH | `/api/notifications/{id}/read` | cualquiera | Marca una como leída. Solo las propias. |
+| PATCH | `/api/notifications/read-all` | cualquiera | Marca todas las del usuario. |
+
+Las crea el backend solo, en tres momentos:
+
+| Momento | Quién la recibe | `type` |
+|---|---|---|
+| Se crea un reporte | Administradores y técnicos activos de esa zona | `reporte_nuevo` |
+| Un reporte llega al umbral y pasa a `confirmado` | El técnico asignado (o los de la zona si no hay) y el autor | `reporte_confirmado` |
+| Se registra la resolución | El autor del reporte y todos los que lo confirmaron | `reporte_resuelto` |
+
+Si algo falla al crearlas **no se cae la operación principal**: crear un reporte o cerrar un
+corte no puede fallar porque no se pudo escribir una notificación. El error queda en el log.
+
+---
+
 ## Estadísticas
 
 | Método | Ruta | Rol |
@@ -186,6 +231,19 @@ Devuelve en una sola llamada todo lo que necesita el dashboard:
     { "technicianId": "...", "technicianName": "Melvin",
       "assigned": 6, "resolved": 5, "resolvedPercentage": 83.33,
       "averageResolutionMinutes": 98.4 }
+  ],
+
+  // tiempo promedio por tipo de corte, agrupado por la causa que escribe el técnico
+  "resolutionsByCause": [
+    { "cause": "Transformador quemado", "total": 3, "averageResolutionMinutes": 210.5 }
+  ],
+
+  // gráfico de tendencia: reportados vs resueltos
+  "weeklyTrend": [
+    { "period": "2026-S38", "reported": 4, "resolved": 2 }
+  ],
+  "monthlyTrend": [
+    { "period": "2026-09", "reported": 12, "resolved": 8 }
   ]
 }
 ```
@@ -210,7 +268,8 @@ para decidir qué hacer.
 | 403 | `no_asignado` | No es el técnico asignado a ese reporte |
 | 403 | `fuera_de_zona` | El reporte no es de su zona |
 | 403 | `tecnico_no_registrado` | El usuario tiene rol Tecnico pero no tiene ficha |
-| 404 | `zona_no_encontrada`, `reporte_no_encontrado`, `usuario_no_encontrado` | No existe |
+| 400 | `zona_inactiva` | La zona está dada de baja y no acepta reportes |
+| 404 | `zona_no_encontrada`, `reporte_no_encontrado`, `usuario_no_encontrado`, `notificacion_no_encontrada` | No existe |
 | 409 | **`reporte_duplicado`** | La zona ya tiene un corte abierto |
 | 409 | `confirmacion_duplicada` | Ya confirmó ese reporte |
 | 409 | `autor_del_reporte` | Intenta confirmar su propio reporte |
@@ -269,6 +328,7 @@ dos personas actuando al mismo tiempo.
 | `confirmations` | Una por (reporte, usuario). Id: `{reportId}_{userId}`. |
 | `resolutions` | Una por reporte. Id: el id del reporte. |
 | `technicians` | Fichas de técnicos. |
+| `notifications` | Una por (usuario, evento). El backend las escribe, el usuario solo las lee y marca leídas. |
 | `notes` | De la actividad semanal, no de ApagónYa. |
 
 Si Firestore devuelve `FAILED_PRECONDITION` pidiendo un índice, el mensaje trae un

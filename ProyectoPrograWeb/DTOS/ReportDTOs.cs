@@ -13,6 +13,7 @@ public class CreateReportDto
     public DateTime? StartedAt { get; set; }
 
     public string EvidenceUrl { get; set; } = string.Empty;
+
 }
 
 public class AssignTechnicianDto
