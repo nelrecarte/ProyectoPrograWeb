@@ -10,6 +10,7 @@ public static class Collections
     public const string Confirmations = "confirmations";
     public const string Resolutions = "resolutions";
     public const string Technicians = "technicians";
+    public const string Notifications = "notifications";
     public const string Notes = "notes";
 }
 

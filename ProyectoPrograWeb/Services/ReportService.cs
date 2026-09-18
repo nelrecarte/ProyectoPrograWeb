@@ -10,12 +10,18 @@ public class ReportService
 {
     private readonly FirebaseService _firebase;
     private readonly ZoneService _zoneService;
+    private readonly NotificationService _notificationService;
     private readonly int _confirmationThreshold;
 
-    public ReportService(FirebaseService firebase, ZoneService zoneService, IConfiguration configuration)
+    public ReportService(
+        FirebaseService firebase,
+        ZoneService zoneService,
+        NotificationService notificationService,
+        IConfiguration configuration)
     {
         _firebase = firebase;
         _zoneService = zoneService;
+        _notificationService = notificationService;
 
         _confirmationThreshold = configuration.GetValue("ApagonYa:ConfirmationThreshold", 1);
     }
@@ -90,6 +96,8 @@ public class ReportService
             return true;
         });
 
+        await _notificationService.NotifyNewReportAsync(report);
+
         return ReportDto.From(report);
     }
 
@@ -148,6 +156,9 @@ public class ReportService
             report.UpdatedAt = now;
             return report;
         });
+
+        if (updated.Status == ReportStatus.Confirmado)
+            await _notificationService.NotifyConfirmedAsync(updated);
 
         var dto = ReportDto.From(updated);
         dto.ConfirmedByMe = true;

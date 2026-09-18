@@ -9,8 +9,13 @@ namespace ProyectoQ3Backend.Services;
 public class ResolutionService
 {
     private readonly FirebaseService _firebase;
+    private readonly NotificationService _notificationService;
 
-    public ResolutionService(FirebaseService firebase) => _firebase = firebase;
+    public ResolutionService(FirebaseService firebase, NotificationService notificationService)
+    {
+        _firebase = firebase;
+        _notificationService = notificationService;
+    }
 
     private CollectionReference Reports => _firebase.GetCollection(Collections.Reports);
     private CollectionReference Resolutions => _firebase.GetCollection(Collections.Resolutions);
@@ -84,6 +89,12 @@ public class ResolutionService
 
             return record;
         });
+
+        var reportSnapshot = await reportReference.GetSnapshotAsync();
+
+        if (reportSnapshot.Exists)
+            await _notificationService.NotifyResolvedAsync(
+                reportSnapshot.ConvertTo<OutageReport>(), resolution);
 
         return ResolutionDto.From(resolution);
     }

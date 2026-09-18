@@ -33,6 +33,7 @@ builder.Services.AddScoped<TechnicianService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<ResolutionService>();
 builder.Services.AddScoped<StatisticsService>();
+builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<SeedService>();
 
 builder.Services.AddScoped<NoteService>();
