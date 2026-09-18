@@ -5,10 +5,6 @@ using ProyectoQ3Backend.Models;
 
 namespace ProyectoQ3Backend.Services;
 
-/// <summary>
-/// Gestion de tecnicos de zona. Registrar un tecnico tambien promueve al usuario
-/// al rol Tecnico, para que no haya que hacerlo en dos pasos.
-/// </summary>
 public class TechnicianService
 {
     private readonly FirebaseService _firebase;
@@ -35,7 +31,6 @@ public class TechnicianService
             .Select(TechnicianDto.From)
             .ToList();
 
-        // Carga de trabajo: cuantos reportes abiertos tiene cada uno.
         var openReports = await _firebase.GetCollection(Collections.Reports)
             .WhereEqualTo("IsActive", true)
             .GetSnapshotAsync();
@@ -62,7 +57,6 @@ public class TechnicianService
         return snapshot.ConvertTo<Technician>();
     }
 
-    /// <summary>Busca el registro de tecnico que corresponde a un usuario autenticado.</summary>
     public async Task<Technician> GetByUserIdAsync(string userId)
     {
         var snapshot = await Technicians.WhereEqualTo("UserId", userId).Limit(1).GetSnapshotAsync();
@@ -112,7 +106,6 @@ public class TechnicianService
 
         await reference.SetAsync(technician);
 
-        // Promover al usuario para que sus peticiones pasen las politicas de rol.
         await _roleService.SetRoleAsync(dto.UserId, Roles.Tecnico);
 
         return TechnicianDto.From(technician);
@@ -132,10 +125,6 @@ public class TechnicianService
         return TechnicianDto.From(technician);
     }
 
-    /// <summary>
-    /// Baja logica: el tecnico deja de recibir reportes pero su historial queda intacto,
-    /// que es exactamente lo que pide el enunciado.
-    /// </summary>
     public async Task<TechnicianDto> SetActiveAsync(string id, bool isActive)
     {
         var technician = await GetEntityAsync(id);

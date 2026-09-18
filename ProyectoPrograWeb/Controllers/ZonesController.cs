@@ -6,7 +6,6 @@ using ProyectoQ3Backend.Services;
 
 namespace ProyectoQ3Backend.Controllers;
 
-/// <summary>Catalogo de zonas. Leer lo puede cualquiera con sesion; escribir solo el administrador.</summary>
 [ApiController]
 [Route("api/zones")]
 [Authorize]
@@ -16,7 +15,6 @@ public class ZonesController : ControllerBase
 
     public ZonesController(ZoneService zoneService) => _zoneService = zoneService;
 
-    /// <summary>Lista las zonas. Cada zona indica si ya tiene un corte abierto.</summary>
     [HttpGet]
     public async Task<ActionResult<List<ZoneDto>>> GetAll([FromQuery] bool onlyActive = false)
         => Ok(await _zoneService.GetAllAsync(onlyActive));
@@ -38,7 +36,6 @@ public class ZonesController : ControllerBase
     public async Task<ActionResult<ZoneDto>> Update(string id, [FromBody] UpdateZoneDto dto)
         => Ok(await _zoneService.UpdateAsync(id, dto));
 
-    /// <summary>Baja logica. La zona deja de aceptar reportes pero conserva su historial.</summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = Roles.Administrador)]
     public async Task<IActionResult> Deactivate(string id)

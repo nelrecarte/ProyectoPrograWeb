@@ -5,7 +5,6 @@ using ProyectoQ3Backend.Models;
 
 namespace ProyectoQ3Backend.Services;
 
-/// <summary>Catalogo de zonas o sectores de cobertura.</summary>
 public class ZoneService
 {
     private readonly FirebaseService _firebase;
@@ -25,8 +24,6 @@ public class ZoneService
             .Select(ZoneDto.From)
             .ToList();
 
-        // Marcar cuales zonas ya tienen un corte abierto, para que el formulario
-        // de reporte pueda avisar antes de que el backend rechace el duplicado.
         var activeReports = await _firebase.GetCollection(Collections.Reports)
             .WhereEqualTo("IsActive", true)
             .GetSnapshotAsync();
@@ -86,9 +83,6 @@ public class ZoneService
         return ZoneDto.From(zone);
     }
 
-    /// <summary>
-    /// Baja logica. No se borra la zona porque su historial de cortes tiene que sobrevivir.
-    /// </summary>
     public async Task DeactivateAsync(string id)
     {
         await GetEntityAsync(id);

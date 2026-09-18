@@ -1,14 +1,10 @@
+using System.Globalization;
 using ProyectoQ3Backend.DTOs;
 using ProyectoQ3Backend.Extensions;
 using ProyectoQ3Backend.Models;
 
 namespace ProyectoQ3Backend.Services;
 
-/// <summary>
-/// Alimenta el dashboard del administrador. Trae los reportes y las resoluciones
-/// y agrega en memoria: con el volumen de un proyecto de clase es suficiente y se
-/// evita depender de agregaciones de Firestore.
-/// </summary>
 public class StatisticsService
 {
     private readonly FirebaseService _firebase;
@@ -58,7 +54,6 @@ public class StatisticsService
 
         stats.AverageResolutionMinutes = minutes.Count > 0 ? Math.Round(minutes.Average(), 2) : 0;
 
-        // Grafico de barras: cortes por zona.
         stats.ReportsByZone = list
             .GroupBy(r => new { r.ZoneId, r.ZoneName })
             .Select(g =>
@@ -81,8 +76,6 @@ public class StatisticsService
             .OrderByDescending(z => z.Total)
             .ToList();
 
-        // Grafico circular: distribucion por estado. Se listan los cuatro estados
-        // aunque alguno vaya en cero, para que el grafico no cambie de forma.
         stats.ReportsByStatus = ReportStatus.Todos
             .Select(status => new StatusCountDto
             {
@@ -116,7 +109,52 @@ public class StatisticsService
             .OrderByDescending(t => t.Resolved)
             .ToList();
 
+        stats.ResolutionsByCause = list
+            .Where(r => resolutions.ContainsKey(r.Id))
+            .Select(r => resolutions[r.Id])
+            .GroupBy(r => string.IsNullOrWhiteSpace(r.Cause) ? "Sin especificar" : r.Cause.Trim())
+            .Select(g => new CauseStatsDto
+            {
+                Cause = g.Key,
+                Total = g.Count(),
+                AverageResolutionMinutes = Math.Round(g.Average(r => r.ResolutionMinutes), 2)
+            })
+            .OrderByDescending(c => c.Total)
+            .ToList();
+
+        stats.WeeklyTrend = BuildTrend(list, resolutions,
+            date => $"{ISOWeek.GetYear(date)}-S{ISOWeek.GetWeekOfYear(date):00}");
+
+        stats.MonthlyTrend = BuildTrend(list, resolutions,
+            date => date.ToString("yyyy-MM"));
+
         return stats;
+    }
+
+    private static List<TrendPointDto> BuildTrend(
+        List<OutageReport> reports,
+        Dictionary<string, Resolution> resolutions,
+        Func<DateTime, string> periodo)
+    {
+        var reportados = reports
+            .GroupBy(r => periodo(r.CreatedAt))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var resueltos = reports
+            .Where(r => resolutions.ContainsKey(r.Id))
+            .GroupBy(r => periodo(resolutions[r.Id].RestoredAt))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return reportados.Keys
+            .Union(resueltos.Keys)
+            .OrderBy(k => k, StringComparer.Ordinal)
+            .Select(k => new TrendPointDto
+            {
+                Period = k,
+                Reported = reportados.GetValueOrDefault(k),
+                Resolved = resueltos.GetValueOrDefault(k)
+            })
+            .ToList();
     }
 
     private static double Percentage(int part, int total) =>

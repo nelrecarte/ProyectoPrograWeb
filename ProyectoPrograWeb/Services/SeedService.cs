@@ -3,11 +3,6 @@ using ProyectoQ3Backend.Models;
 
 namespace ProyectoQ3Backend.Services;
 
-/// <summary>
-/// Utilidades de arranque. Existen para que el equipo pueda levantar datos de
-/// prueba y crear el primer administrador sin tocar la consola de Firebase.
-/// Ambas operaciones piden la clave de <c>ApagonYa:SetupKey</c>.
-/// </summary>
 public class SeedService
 {
     private static readonly (string Name, string Sector)[] ZonasIniciales =
@@ -33,7 +28,6 @@ public class SeedService
         _configuration = configuration;
     }
 
-    /// <summary>Revisa la clave de setup antes de dejar hacer nada.</summary>
     public void EnsureKey(string? provided)
     {
         var expected = _configuration["ApagonYa:SetupKey"];
@@ -47,7 +41,6 @@ public class SeedService
             throw new ForbiddenException("Clave de setup incorrecta", "clave_invalida");
     }
 
-    /// <summary>Crea el catalogo inicial de zonas. Es idempotente: no duplica las que ya existen.</summary>
     public async Task<List<string>> SeedZonesAsync()
     {
         var collection = _firebase.GetCollection(Collections.Zones);
@@ -82,10 +75,6 @@ public class SeedService
         return created;
     }
 
-    /// <summary>
-    /// Promueve a administrador a un usuario ya registrado. Es la forma de crear el
-    /// primer admin, porque todos se registran como ciudadanos.
-    /// </summary>
     public async Task PromoteToAdminAsync(string email)
     {
         var snapshot = await _firebase.GetCollection(Collections.Users)

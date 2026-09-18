@@ -26,8 +26,6 @@ public class ZoneDto
     public string Description { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 
-    /// <summary>Reporte abierto de la zona, si lo hay. Sirve para que el formulario
-    /// de reporte avise antes de intentar crear un duplicado.</summary>
     public string? ActiveReportId { get; set; }
 
     public static ZoneDto From(Zone zone) => new()

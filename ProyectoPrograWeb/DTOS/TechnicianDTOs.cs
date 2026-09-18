@@ -5,7 +5,6 @@ namespace ProyectoQ3Backend.DTOs;
 
 public class CreateTechnicianDto
 {
-    /// <summary>UID de Firebase del usuario que va a ser tecnico. Debe estar ya registrado.</summary>
     [Required] public string UserId { get; set; } = string.Empty;
 
     [Required] public string FullName { get; set; } = string.Empty;
@@ -33,7 +32,6 @@ public class TechnicianDto
     public bool IsAvailable { get; set; }
     public bool IsActive { get; set; }
 
-    /// <summary>Cuantos reportes abiertos tiene asignados en este momento.</summary>
     public int ActiveReportCount { get; set; }
 
     public static TechnicianDto From(Technician t) => new()

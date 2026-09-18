@@ -10,10 +10,8 @@ public class CreateReportDto
     [Required, MinLength(5, ErrorMessage = "La direccion aproximada es muy corta")]
     public string Address { get; set; } = string.Empty;
 
-    /// <summary>Hora en que empezo el corte. Si no se manda, se toma la hora actual.</summary>
     public DateTime? StartedAt { get; set; }
 
-    /// <summary>Opcional. La subida de archivos a Storage quedo fuera de alcance.</summary>
     public string EvidenceUrl { get; set; } = string.Empty;
 }
 
@@ -24,7 +22,6 @@ public class AssignTechnicianDto
 
 public class ChangeStatusDto
 {
-    /// <summary>Solo se acepta "en_verificacion" o "confirmado". Para resolver se usa el endpoint de resolucion.</summary>
     [Required] public string Status { get; set; } = string.Empty;
 }
 
@@ -47,10 +44,8 @@ public class ReportDto
     public DateTime UpdatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
 
-    /// <summary>True si el usuario que hace la peticion ya confirmo este reporte.</summary>
     public bool ConfirmedByMe { get; set; }
 
-    /// <summary>Resolucion asociada, cuando el reporte ya esta resuelto.</summary>
     public ResolutionDto? Resolution { get; set; }
 
     public static ReportDto From(OutageReport r) => new()
@@ -74,7 +69,6 @@ public class ReportDto
     };
 }
 
-/// <summary>Cuerpo del error 409 cuando la zona ya tiene un corte abierto.</summary>
 public class DuplicateReportDto
 {
     public string ExistingReportId { get; set; } = string.Empty;

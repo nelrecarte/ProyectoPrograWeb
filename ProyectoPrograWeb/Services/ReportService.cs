@@ -6,11 +6,6 @@ using ProyectoQ3Backend.Models;
 
 namespace ProyectoQ3Backend.Services;
 
-/// <summary>
-/// Ciclo de vida del reporte de corte. Las tres reglas del enunciado que dependen
-/// de concurrencia (un solo reporte activo por zona, el umbral de confirmaciones y
-/// el cierre) se resuelven con transacciones de Firestore, no con leer-y-luego-escribir.
-/// </summary>
 public class ReportService
 {
     private readonly FirebaseService _firebase;
@@ -22,17 +17,12 @@ public class ReportService
         _firebase = firebase;
         _zoneService = zoneService;
 
-        // El enunciado pide "al menos una confirmacion ciudadana adicional".
         _confirmationThreshold = configuration.GetValue("ApagonYa:ConfirmationThreshold", 1);
     }
 
     private CollectionReference Reports => _firebase.GetCollection(Collections.Reports);
     private CollectionReference Confirmations => _firebase.GetCollection(Collections.Confirmations);
     private CollectionReference Resolutions => _firebase.GetCollection(Collections.Resolutions);
-
-    // ------------------------------------------------------------------
-    // Escenario 1 y 2: crear reporte, bloqueando el duplicado de la zona
-    // ------------------------------------------------------------------
 
     public async Task<ReportDto> CreateAsync(CreateReportDto dto, string userId, string userName)
     {
@@ -65,8 +55,6 @@ public class ReportService
             UpdatedAt = DateTime.UtcNow
         };
 
-        // Dos filtros de igualdad: Firestore los resuelve con los indices de un solo
-        // campo que crea solo, sin necesidad de un indice compuesto.
         var activeInZone = Reports
             .WhereEqualTo("ZoneId", zone.Id)
             .WhereEqualTo("IsActive", true)
@@ -80,7 +68,6 @@ public class ReportService
             {
                 var open = existing.Documents[0].ConvertTo<OutageReport>();
 
-                // Todavia no se ha escrito nada, asi que se puede seguir leyendo.
                 var mine = await transaction.GetSnapshotAsync(
                     Confirmations.Document(Confirmation.BuildId(open.Id, userId)));
 
@@ -105,10 +92,6 @@ public class ReportService
 
         return ReportDto.From(report);
     }
-
-    // ------------------------------------------------------------------
-    // Escenario 3: confirmacion comunitaria
-    // ------------------------------------------------------------------
 
     public async Task<ReportDto> ConfirmAsync(string reportId, string userId, string userName)
     {
@@ -139,7 +122,6 @@ public class ReportService
             var count = report.ConfirmationCount + 1;
             var status = report.Status;
 
-            // Al alcanzar el umbral el reporte pasa solo a confirmado.
             if (count >= _confirmationThreshold && status != ReportStatus.Confirmado)
                 status = ReportStatus.Confirmado;
 
@@ -171,10 +153,6 @@ public class ReportService
         dto.ConfirmedByMe = true;
         return dto;
     }
-
-    // ------------------------------------------------------------------
-    // Asignacion y cambios de estado (tecnico y administrador)
-    // ------------------------------------------------------------------
 
     public async Task<ReportDto> AssignTechnicianAsync(string reportId, Technician technician)
     {
@@ -255,10 +233,6 @@ public class ReportService
         return ReportDto.From(updated);
     }
 
-    // ------------------------------------------------------------------
-    // Consultas
-    // ------------------------------------------------------------------
-
     public async Task<OutageReport> GetEntityAsync(string id)
     {
         var snapshot = await Reports.Document(id).GetSnapshotAsync();
@@ -286,11 +260,6 @@ public class ReportService
         return dto;
     }
 
-    /// <summary>
-    /// Listado con filtros opcionales. Los filtros se aplican en memoria despues de
-    /// traer la coleccion: con el volumen de un proyecto de clase alcanza de sobra y
-    /// evita tener que crear indices compuestos en Firestore.
-    /// </summary>
     public async Task<List<ReportDto>> GetAllAsync(
         string? zoneId = null,
         string? status = null,
@@ -343,7 +312,6 @@ public class ReportService
         return all.Where(r => r.ReportedByUserId == userId).ToList();
     }
 
-    /// <summary>Marca cuales reportes ya confirmo el usuario, para que el boton "a mi tambien" salga desactivado.</summary>
     private async Task MarkConfirmedByMeAsync(List<ReportDto> reports, string? userId)
     {
         if (string.IsNullOrEmpty(userId) || reports.Count == 0)

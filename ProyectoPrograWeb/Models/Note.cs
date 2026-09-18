@@ -1,6 +1,5 @@
 namespace ProyectoQ3Backend.Models;
 
-//Nota que crea un usuario
 public class Note
 {
     public string Id { get; set; } = string.Empty;

@@ -21,10 +21,6 @@ public class AuthService
         _roleService = roleService;
     }
 
-    /// <summary>
-    /// Todos se registran como Ciudadano. Al administrador se le sube el rol con
-    /// /api/setup/promote-admin y a los tecnicos al registrarlos desde el panel.
-    /// </summary>
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
         var credentials = await _authClient.SignUpAsync(dto.Email, dto.Password);
@@ -53,15 +49,10 @@ public class AuthService
         }
         catch
         {
-            // Si el perfil no se pudo guardar, se deshace el usuario de Firebase Auth
-            // para que el correo quede libre y se pueda reintentar.
             await FirebaseAuth.DefaultInstance.DeleteUserAsync(credentials.LocalId);
             throw;
         }
 
-        // El claim es lo que autoriza las peticiones. El token que se devuelve abajo
-        // se emitio antes de este claim, asi que el rol aparece hasta el siguiente login
-        // o al refrescar el token en el cliente.
         await _roleService.TrySetInitialRoleAsync(credentials.LocalId, Roles.Ciudadano);
 
         return ToResponse(credentials, Roles.Ciudadano);
@@ -71,8 +62,6 @@ public class AuthService
     {
         var credentials = await _authClient.SignInAsync(dto.Email, dto.Password);
 
-        // Se lee el rol del perfil para que el frontend sepa a que panel mandar al
-        // usuario sin tener que decodificar el token.
         var role = Roles.Ciudadano;
 
         var snapshot = await _firebaseService.GetCollection(Collections.Users)
@@ -84,6 +73,8 @@ public class AuthService
 
         return ToResponse(credentials, role);
     }
+
+    public Task ForgotPasswordAsync(string email) => _authClient.SendPasswordResetAsync(email);
 
     private static AuthResponseDto ToResponse(FirebaseAuthResult credentials, string role) => new()
     {
